@@ -19,7 +19,7 @@ import (
 	"time"
 
 	tiff32 "github.com/hongping1224/go-tiff32"
-	"github.com/hongping1224/lastodsm/counter"
+	"github.com/hongping1224/lasintensitymap/counter"
 	"github.com/jblindsay/lidario"
 )
 
