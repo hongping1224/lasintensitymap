@@ -20,7 +20,7 @@ import (
 
 	tiff32 "github.com/hongping1224/go-tiff32"
 	"github.com/hongping1224/lasintensitymap/counter"
-	"github.com/jblindsay/lidario"
+	"github.com/hongping1224/lidario"
 )
 
 var numOFCPU int
