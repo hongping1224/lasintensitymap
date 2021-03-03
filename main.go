@@ -34,9 +34,9 @@ func main() {
 	gap := float64(0.01)
 	flag.Float64Var(&gap, "size", gap, "pixel size")
 	minZ := -1.0
-	flag.Float64Var(&minZ, "minZ", minZ, "pixel size")
+	flag.Float64Var(&minZ, "minZ", minZ, "minZ")
 	maxZ := math.MaxFloat64
-	flag.Float64Var(&maxZ, "maxZ", maxZ, "pixel size")
+	flag.Float64Var(&maxZ, "maxZ", maxZ, "maxZ")
 	outPath := ""
 	flag.StringVar(&outPath, "out", outPath, "Output Dir")
 	flag.Parse()
