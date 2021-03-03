@@ -33,6 +33,10 @@ func main() {
 	flag.StringVar(&dir, "dir", dir, "directory to process")
 	gap := float64(0.01)
 	flag.Float64Var(&gap, "size", gap, "pixel size")
+	minZ := -1.0
+	flag.Float64Var(&minZ, "minZ", minZ, "pixel size")
+	maxZ := math.MaxFloat64
+	flag.Float64Var(&maxZ, "maxZ", maxZ, "pixel size")
 	outPath := ""
 	flag.StringVar(&outPath, "out", outPath, "Output Dir")
 	flag.Parse()
@@ -55,7 +59,7 @@ func main() {
 		o := checkOutPath(outPath, path, 0)
 		fmt.Println("Calculating", path)
 		fmt.Println("out path ", o)
-		Run(path, gap, o)
+		Run(path, gap, o, minZ, maxZ)
 	}
 
 }
@@ -99,13 +103,13 @@ func SaveLabelTiff(filename string, DensityMap []uint32, w, h int, gap float64, 
 }
 
 //Run Calculate Point Density On a Single File
-func Run(filepath string, gap float64, outPath string) {
+func Run(filepath string, gap float64, outPath string, minZ, maxZ float64) {
 	lf, err := openLasFile(filepath)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	densityMap, xrange, yrange := Calculate(lf, lf.Header.MinX, lf.Header.MinY, lf.Header.MaxX, lf.Header.MaxY, gap)
+	densityMap, xrange, yrange := Calculate(lf, lf.Header.MinX, lf.Header.MinY, lf.Header.MaxX, lf.Header.MaxY, gap, minZ, maxZ)
 	LB := counter.Point{X: lf.Header.MinX, Y: lf.Header.MinY}
 	lf.Close()
 	SaveLabelTiff(outPath, densityMap, xrange, yrange, gap, LB)
@@ -145,13 +149,13 @@ func findBoundary(files []string) (minx, miny, maxx, maxy float64) {
 
 //Calculate setup 1 reader and 1 writer for each Counter
 //each Counter reads write 1/NumOfCPU of points, and add em up together in the end
-func Calculate(lf *lidario.LasFile, MinX, MinY, MaxX, MaxY, gap float64) ([]uint32, int, int) {
+func Calculate(lf *lidario.LasFile, MinX, MinY, MaxX, MaxY, gap, MinZ, MaxZ float64) ([]uint32, int, int) {
 	cpu := numOFCPU / 2
 	counters := make([]*counter.Counter, cpu)
 	//make counter accoding to num CPU
 	for i := 0; i < cpu; i++ {
 		counters[i] = &counter.Counter{}
-		counters[i].Init(MinX, MinY, MaxX, MaxY, gap)
+		counters[i].Init(MinX, MinY, MaxX, MaxY, gap, MinZ, MaxZ)
 		read := counter.Reader{}
 		go read.Serve(counters[i].ReadStream, counters[i])
 		write := counter.Writer{}

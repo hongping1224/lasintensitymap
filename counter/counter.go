@@ -31,6 +31,8 @@ type Counter struct {
 	XRange      int
 	YRange      int
 	gap         float64
+	minZ        float64
+	maxZ        float64
 	ReadStream  chan lidario.LasPointer
 	WriteStream chan lidario.LasPointer
 	WG          *sync.WaitGroup
@@ -42,12 +44,16 @@ func (counter *Counter) Count(start int, end int, lf *lidario.LasFile, wg *sync.
 
 	for i := start; i < end; i++ {
 		p, _ := lf.LasPoint(i)
+		pd := p.PointData()
+		if pd.Z < counter.minZ || pd.Z > counter.maxZ {
+			continue
+		}
 		counter.ReadStream <- p
 	}
 	close(counter.ReadStream)
 }
 
-func (counter *Counter) Init(minx, miny, maxx, maxy, gap float64) {
+func (counter *Counter) Init(minx, miny, maxx, maxy, gap, minZ, maxZ float64) {
 	counter.ReadStream = make(chan lidario.LasPointer)
 	counter.WriteStream = make(chan lidario.LasPointer)
 	//DensityMap
@@ -58,6 +64,8 @@ func (counter *Counter) Init(minx, miny, maxx, maxy, gap float64) {
 	counter.YRange = int(math.Ceil((maxy - miny) / gap))
 	counter.DensityMap = make([]uint32, counter.XRange*counter.YRange)
 	counter.IntensitMap = make([]uint32, counter.XRange*counter.YRange)
+	counter.minZ = minZ
+	counter.maxZ = maxZ
 	for i := 0; i < counter.XRange*counter.YRange; i++ {
 		counter.DensityMap[i] = 0
 		counter.IntensitMap[i] = 0
